@@ -1,4 +1,3 @@
-from urllib import response
 from models.user import User
 from storage.db import SessionLocal
 from storage.redis import redis_cache
@@ -6,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from utils.errors import *
+from utils.utils import create_user_token_key
 from jose import JWTError, jwt
 from os import environ
 
@@ -17,6 +17,7 @@ async def auth_middleware(request: Request, call_next):
     # check if the path does not require authentication
 
     path_list = [
+        "/",
         "/docs",
         "/openapi.json",
         "/redoc",
@@ -48,12 +49,12 @@ async def auth_middleware(request: Request, call_next):
 
     user_id = request.state.user["user_id"]
     # check for logged out accounts
-    """key = create_user_token_key(user_id)
+    key = create_user_token_key(user_id)
     cached_data = await redis_cache.get(key)
     if cached_data:
         return JSONResponse(
             status_code=401, content={"message": "Unauthorized: Not Authenticated"}
-        )"""
+        )
     # get user's role
     """key = create_user_key(user_id)
     user = await redis_cache.get(key)

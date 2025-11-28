@@ -55,3 +55,13 @@ def model_to_dict(obj, request: Request = None):
 
 def users_to_dict(users, request: Request = None):
     return {user.id: model_to_dict(user, request) for user in users}
+
+
+def create_user_key(user_id: str):
+    """creates a cache key for users"""
+    return f"User:{user_id}"
+
+
+def create_user_token_key(user_id: str):
+    """creates a cache token key for users"""
+    return f"UserSessionToken:{user_id}"
