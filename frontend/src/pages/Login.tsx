@@ -13,6 +13,11 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 20000)
+
     try {
       const formData = new URLSearchParams();
       formData.append("username", email);
@@ -24,9 +29,12 @@ export default function Login() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: formData.toString(),
+        signal: controller.signal,
       });
 
-      if(!response.ok) {
+      clearTimeout(timeout)
+
+      if (!response.ok) {
         const data = await response.json();
         throw new Error(data.detail || "Invalid Email or Password");
       }
@@ -37,7 +45,11 @@ export default function Login() {
 
       navigate("/dashboard");
     } catch (error: any) {
-      setError(error.message);
+      if (error.name === "AbortError") {
+        setError("Request timed out. Please try again");
+      } else { 
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }

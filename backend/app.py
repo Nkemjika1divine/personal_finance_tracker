@@ -1,3 +1,4 @@
+from routes.users import user_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -6,6 +7,7 @@ import os
 
 
 app = FastAPI()
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -17,6 +19,7 @@ app.state.UPLOAD_DIR = UPLOAD_DIR
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+app.include_router(user_router)
 
 app.middleware("http")(auth_middleware)
 

@@ -1,5 +1,5 @@
 from fastapi import UploadFile
-from crud.user import get_user_by_email
+from crud.users import get_user_by_email
 from dotenv import load_dotenv
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
@@ -33,7 +33,7 @@ def create_access_token(data: dict):
 
 def authenticate_user(email: str, password: str):
     """Authenticates the password of a user. Returns true if the password is correct"""
-    from db.db import SessionLocal
+    from storage.db import SessionLocal
 
     db = SessionLocal()
     user = get_user_by_email(email=email)

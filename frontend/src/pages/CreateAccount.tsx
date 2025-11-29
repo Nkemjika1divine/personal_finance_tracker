@@ -6,17 +6,45 @@ export default function CreateAccount() {
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleCreateAccount = (e: FormEvent) => {
+  const handleCreateAccount = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 20000)
+
+    try{
+        const response = await fetch("http://localhost:8000/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, email, password }),
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeout)
+
+        if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Email already registered");
+      }
+      navigate("/login");
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        setError("Request timed out. Please try again");
+      } else { 
+        setError(error.message);
+      }
+    } finally {
       setLoading(false);
-      alert("Account creation successful!");
-    }, 1500);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -37,6 +65,13 @@ export default function CreateAccount() {
         <p className="text-center text-black mb-8 z-10 relative">
           Create your account
         </p>
+
+        {/* Error Section */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleCreateAccount} className="space-y-6 z-10 relative">
           {/* Username */}
