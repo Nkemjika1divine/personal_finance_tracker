@@ -1,8 +1,10 @@
 from routes.users import user_router
+from routes.categories import category_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from middleware.auth import auth_middleware
+from utils.utils import create_default_categories
 import os
 
 
@@ -20,6 +22,7 @@ app.state.UPLOAD_DIR = UPLOAD_DIR
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(user_router)
+app.include_router(category_router)
 
 app.middleware("http")(auth_middleware)
 
@@ -35,6 +38,11 @@ app.add_middleware(
     allow_methods=["*"],  # GET, POST, PUT, DELETE all allowed
     allow_headers=["*"],  # All headers allowed
 )
+
+
+@app.on_event("startup")
+def startup_event():
+    create_default_categories()
 
 
 @app.get("/")

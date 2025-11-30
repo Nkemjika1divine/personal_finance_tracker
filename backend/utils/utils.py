@@ -1,11 +1,83 @@
 #!/usr/bin/python3
 """Utility module"""
+from models.category import Category
+from sqlalchemy import exists
+import inflect
+import re
 from datetime import datetime
+import unicodedata
 from bcrypt import hashpw, checkpw, gensalt
 import re
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 from sqlalchemy.inspection import inspect
+
+
+DEFAULT_CATEGORIES = [
+    "Rent and Housing",
+    "Utilities",
+    "Groceries",
+    "Food and Dining",
+    "Internet and Data",
+    "Airtime and Calls",
+    "Transportation",
+    "Fuel",
+    "Vehicle Maintenance",
+    "Business Expenses",
+    "Tools and Equipment",
+    "Bank Charges",
+    "Savings and Investment",
+    "Loan and Debt Payment",
+    "Entertainment",
+    "Shopping",
+    "Clothing and Fashion",
+    "Subscriptions",
+    "Healthcare",
+    "Education",
+    "Child Expenses",
+    "Gifts and Donations",
+    "Miscellaneous",
+    "Emergency",
+]
+
+
+def create_default_categories():
+    """This creates default categories in the DB"""
+    from storage.db import SessionLocal
+
+    db = SessionLocal()
+    try:
+        for name in DEFAULT_CATEGORIES:
+            exist = (
+                db.query(Category)
+                .filter(Category.name == name, Category.user_id == None)
+                .first()
+            )
+            if not exist:
+                db.add(Category(name=name, user_id=None))
+        db.commit()
+    finally:
+        db.close()
+
+
+def category_normalizer(name: str):
+    """This checks if a category has been entered before"""
+
+    inflect = inflect.engine()
+
+    name = name.lower()
+    name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    name = name.replace("&", "and")
+    name = re.sub(r"[^\W\S]", "", name)  # remove punctuations
+    name = re.sub(r"\s+", " ", name)  # Collapse multiple spaces
+
+    words = name.split()
+    if len(words) > 0:
+        singular = inflect.singular_noun(words[-1])
+        if singular:
+            words[-1] = singular
+    name = " ".join(words)
+    return name
 
 
 def check_if_word_exists(word: str = None, sentence: str = None) -> bool:
@@ -65,3 +137,8 @@ def create_user_key(user_id: str):
 def create_user_token_key(user_id: str):
     """creates a cache token key for users"""
     return f"UserSessionToken:{user_id}"
+
+
+def create_category_key(category_id: str):
+    """creates a cache key for categories"""
+    return f"Category:{category_id}"

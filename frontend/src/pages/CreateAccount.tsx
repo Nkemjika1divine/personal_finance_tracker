@@ -35,7 +35,7 @@ export default function CreateAccount() {
         const data = await response.json();
         throw new Error(data.detail || "Email already registered");
       }
-      navigate("/login");
+      navigate("login");
     } catch (error: any) {
       if (error.name === "AbortError") {
         setError("Request timed out. Please try again");
