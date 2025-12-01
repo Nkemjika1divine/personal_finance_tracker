@@ -34,7 +34,7 @@ async def create_a_category(name: str, user_id: str = None):
         )
         return category
     except Exception as e:
-        raise ValueError(f"Couldn't save category: {e}")
+        raise ValueError(f"Couldn't create category: {e}")
 
 
 async def delete_a_category(category_id: str):
@@ -52,16 +52,19 @@ async def delete_a_category(category_id: str):
         db.close()
         return 1
     except Exception as e:
-        raise ValueError(f"Couldn't save category: {e}")
+        raise ValueError(f"Couldn't delete category: {e}")
 
 
 async def get_all_categories():
     """This returns all the categories in the db"""
-    categories = await redis_cache.get_index([indexes["categories"]])
-    if categories:
-        return categories
-    db = SessionLocal()
-    categories = db.query(Category).all()
-    if not categories:
-        return None
-    return users_to_dict(categories)
+    try:
+        categories = await redis_cache.get_index([indexes["categories"]])
+        if categories:
+            return categories
+        db = SessionLocal()
+        categories = db.query(Category).all()
+        if not categories:
+            return None
+        return users_to_dict(categories)
+    except Exception as e:
+        raise ValueError(f"Couldn't get category: {e}")

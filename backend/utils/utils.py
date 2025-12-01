@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.inspection import inspect
 
 
-DEFAULT_CATEGORIES = [
+DEFAULT_budgets = [
     "Rent and Housing",
     "Utilities",
     "Groceries",
@@ -41,13 +41,13 @@ DEFAULT_CATEGORIES = [
 ]
 
 
-def create_default_categories():
-    """This creates default categories in the DB"""
+def create_default_budgets():
+    """This creates default budgets in the DB"""
     from storage.db import SessionLocal
 
     db = SessionLocal()
     try:
-        for name in DEFAULT_CATEGORIES:
+        for name in DEFAULT_budgets:
             exist = (
                 db.query(Category)
                 .filter(Category.name == name, Category.user_id == None)
@@ -142,3 +142,8 @@ def create_user_token_key(user_id: str):
 def create_category_key(category_id: str):
     """creates a cache key for categories"""
     return f"Category:{category_id}"
+
+
+def create_budget_key(budget_id: str):
+    """creates a cache key for budgets"""
+    return f"Budget:{budget_id}"

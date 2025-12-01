@@ -2,12 +2,7 @@ from schemas.categoryschema import CategoryExpected
 from crud.categories import create_a_category, delete_a_category, get_all_categories
 from fastapi import APIRouter, Request, BackgroundTasks, Depends, Query
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
-from schemas.userschema import UserExpected, UserResponse, UserUpdate
-from sqlalchemy.orm import Session
 from starlette.status import HTTP_201_CREATED, HTTP_200_OK
-from typing import Annotated
-from uuid import uuid4
 from utils.errors import Not_Found, ServerError, Unauthorized, Forbidden, Bad_Request
 
 
