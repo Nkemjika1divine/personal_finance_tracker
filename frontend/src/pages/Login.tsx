@@ -1,65 +1,29 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthFetch } from "../hooks/useAuthFetch";
+import { loginUser } from "../services/APICalls";
 
 export default function Login() {
+  const { loading, error, fetchWithTimeout } = useAuthFetch();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 20000)
-
-    try {
-      const formData = new URLSearchParams();
-      formData.append("username", email);
-      formData.append("password", password);
-
-      const response = await fetch("http://localhost:8000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formData.toString(),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout)
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || "Invalid Email or Password");
-      }
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("email", data.email);
-
-      navigate("/dashboard");
-    } catch (error: any) {
-      if (error.name === "AbortError") {
-        setError("Request timed out. Please try again");
-      } else { 
-        setError(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSocialLogin = (provider: string) => {
-    alert(`Logging in with ${provider}`)
-  }
 
   const navigate = useNavigate();
+
+  const payload = {
+    email: email.trim(), password: password
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await loginUser(fetchWithTimeout, payload);
+      navigate("/dashboard")
+    } catch (err) {
+      console.log("Error Occured")
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 px-4">
@@ -91,7 +55,6 @@ export default function Login() {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                setError(null);
               }}
               className="peer w-full border border-gray-300 rounded-xl px-4 pt-5 pb-2 text-sm text-black focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               required
@@ -113,7 +76,6 @@ export default function Login() {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                setError(null);
               }}
               className="peer w-full border border-gray-300 rounded-xl px-4 pt-5 pb-2 text-sm text-black focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               required

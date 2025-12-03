@@ -1,5 +1,4 @@
 from ast import mod
-from backend.routes import categories
 from models.category import Category
 from sqlalchemy.orm import Session
 from storage.db import SessionLocal

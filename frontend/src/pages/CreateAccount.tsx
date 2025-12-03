@@ -1,57 +1,34 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthFetch } from "../hooks/useAuthFetch";
+import { createAccount } from "../services/APICalls";
 
 export default function CreateAccount() {
+  const { loading, error, fetchWithTimeout } = useAuthFetch();
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleCreateAccount = async (e: FormEvent) => {
+  const navigate = useNavigate();
+
+  const payload = {
+    email: email.trim(), password: password.trim(), username: username.trim()
+  };
+
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 20000)
 
     try{
-        const response = await fetch("http://localhost:8000/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, email, password }),
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeout)
-
-        if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || "Email already registered");
-      }
-      navigate("login");
-    } catch (error: any) {
-      if (error.name === "AbortError") {
-        setError("Request timed out. Please try again");
-      } else { 
-        setError(error.message);
-      }
-    } finally {
-      setLoading(false);
+        const response = await createAccount(fetchWithTimeout, payload);
+        navigate("/login");
+    } catch (err) {
+      console.log("Error Occured")
     }
   };
 
   const handleSocialLogin = (provider: string) => {
     alert(`Logging in with ${provider}`)
   }
-
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 px-4">

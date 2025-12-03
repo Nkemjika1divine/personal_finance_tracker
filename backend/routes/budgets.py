@@ -79,7 +79,7 @@ async def create_budget(request: Request, budgetexpected: BudgetExpected):
 
 
 @budget_router.delete("/delete_budget/{user_id}/{budget_id}")
-async def soft_delete_budget(request: Request, user_id: str, budget_id: str)
+async def soft_delete_budget(request: Request, user_id: str, budget_id: str):
     "this softdeletes a budget"
     if (
         request.state.role == "admin"
@@ -88,6 +88,8 @@ async def soft_delete_budget(request: Request, user_id: str, budget_id: str)
     ):
         success = soft_delete_a_budget(budget_id)
         if success:
-            return JSONResponse(content="budget deleted successfully", status_code=HTTP_200_OK)
+            return JSONResponse(
+                content="budget deleted successfully", status_code=HTTP_200_OK
+            )
         raise Not_Found("budget not found")
     raise Forbidden("You are not authorized to perform this action")
