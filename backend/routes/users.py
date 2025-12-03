@@ -6,6 +6,8 @@ from crud.users import (
     delete_a_user,
     delete_a_user_permanently,
     get_users,
+    make_admin,
+    remove_admin,
     update_user,
 )
 from fastapi import APIRouter, Request, BackgroundTasks, Depends, Query
@@ -131,3 +133,29 @@ async def logout(request: Request):
     key = create_user_token_key(request.state.user["user_id"])
     await redis_cache.set(key=key, value=token, exp_seconds=3600)
     return JSONResponse(content="User logged out successfully", status_code=HTTP_200_OK)
+
+
+@user_router.put("/make_admin/{user_id}")
+async def make_user_an_admin(request: Request, user_id: str):
+    """Makes a user an admin"""
+    if request.state.role is not "admin" or request.state.role is not "superuser":
+        raise Unauthorized("You are not authorized to perform this action")
+    user = make_admin(user_id)
+    if user == 0:
+        raise Not_Found(f"User does not exist")
+    if user == -1:
+        raise Bad_Request("User already an admin")
+    return JSONResponse(content=model_to_dict(user), status_code=HTTP_201_CREATED)
+
+
+@user_router.put("/remove_admin/{user_id}")
+async def make_admin_a_user(request: Request, user_id: str):
+    """Makes an admin a user"""
+    if request.state.role is not "admin" or request.state.role is not "superuser":
+        raise Unauthorized("You are not authorized to perform this action")
+    user = remove_admin(user_id)
+    if user == 0:
+        raise Not_Found(f"User does not exist")
+    if user == -1:
+        raise Bad_Request("User already a user")
+    return JSONResponse(content=model_to_dict(user), status_code=HTTP_201_CREATED)

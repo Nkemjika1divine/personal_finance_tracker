@@ -122,3 +122,41 @@ def get_users(page: int, limit: int):
     total = db.query(User).count()
     users = users_to_dict(users)
     return {"total": total, "data": users}
+
+
+async def make_admin(user_id: str):
+    """This makes a user an admin"""
+    db = SessionLocal()
+    try:
+        user = db.query(User.id == user_id, User.is_deleted == False).first()
+        if not user:
+            return 0
+        if user.role == "admin":
+            return -1
+        user.role = "admin"
+        db.commit()
+        db.refresh(user)
+        user = model_to_dict(user)
+        await redis_cache.set(key=create_user_key(user_id), value=user)
+        return user
+    except Exception as e:
+        raise ValueError(f"Error making admin: {e}")
+
+
+async def remove_admin(user_id: str):
+    """This makes an admin a user"""
+    db = SessionLocal()
+    try:
+        user = db.query(User.id == user_id, User.is_deleted == False).first()
+        if not user:
+            return 0
+        if user.role == "user":
+            return -1
+        user.role = "user"
+        db.commit()
+        db.refresh(user)
+        user = model_to_dict(user)
+        await redis_cache.set(key=create_user_key(user_id), value=user)
+        return user
+    except Exception as e:
+        raise ValueError(f"Error removing admin: {e}")
