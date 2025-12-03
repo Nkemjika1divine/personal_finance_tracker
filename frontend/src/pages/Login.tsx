@@ -20,7 +20,10 @@ export default function Login() {
     try {
       const response = await loginUser(fetchWithTimeout, payload);
       if (response?.token) {
+        const oneHour = 60 * 60 * 1000;
+        const expiresAt = Date.now() + oneHour
         localStorage.setItem("token", response.token);
+        localStorage.setItem("token_expiry", expiresAt.toString());
       }
       navigate("/dashboard")
     } catch (err) {

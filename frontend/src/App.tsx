@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import CreateAccount from "./pages/CreateAccount";
 import ProtectedRoute from "./routes/ProtectedRoutes";
+import Dashboard from "./pages/DashBoard";
 
 export default function App() {
   return (
