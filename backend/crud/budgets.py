@@ -119,3 +119,38 @@ async def get_a_budget(budget_id: str):
         return model_to_dict(budget)
     except Exception as e:
         raise ValueError(f"Couldn't get budget: {e}")
+
+
+async def edit_a_budget(
+    budget_id: str, amount: float = None, period: str = None, category_id: str = None
+):
+    """This edits a budget"""
+    db = SessionLocal()
+    try:
+        if category_id:
+            category = db.query(Category).filter(Category.id == category_id).first()
+            if not category:
+                return -1
+        budget = (
+            db.query(Budget)
+            .filter(Budget.id == budget_id, Budget.is_deleted == False)
+            .first()
+        )
+        if not budget:
+            return 0
+        if amount:
+            budget.amount_limit = amount
+        if period:
+            budget.period = period
+        db.commit()
+        db.refresh(budget)
+        budget = model_to_dict(budget)
+        db.close()
+        await redis_cache.set(
+            key=create_budget_key(budget_id=budget["id"]),
+            value=budget,
+            indexes=[indexes["budgets"]],
+        )
+        return budget
+    except Exception as e:
+        raise ValueError(f"Couldn't edit budget: {e}")

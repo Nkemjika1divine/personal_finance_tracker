@@ -2,6 +2,7 @@ import stat
 from schemas.budgetschema import BudgetExpected
 from crud.budgets import (
     add_a_budget,
+    edit_a_budget,
     get_a_budget,
     get_a_users_budgets,
     get_all_budgets,
@@ -92,4 +93,17 @@ async def soft_delete_budget(request: Request, user_id: str, budget_id: str):
                 content="budget deleted successfully", status_code=HTTP_200_OK
             )
         raise Not_Found("budget not found")
+    raise Forbidden("You are not authorized to perform this action")
+
+
+@budget_router.put("/edit_budget/{user_id}/{budget_id}")
+async def edit_budget(request: Request, user_id: str, budget_id: str):
+    "this edits a budget"
+    if user_id == request.state.user["id"]:
+        budget = edit_a_budget(budget_id)
+        if budget == -1:
+            raise Bad_Request("category does not exist")
+        if budget == 0:
+            raise Not_Found("budget does not exist")
+        return JSONResponse(content=budget, status_code=HTTP_200_OK)
     raise Forbidden("You are not authorized to perform this action")
