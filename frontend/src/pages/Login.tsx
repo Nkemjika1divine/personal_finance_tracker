@@ -19,6 +19,9 @@ export default function Login() {
 
     try {
       const response = await loginUser(fetchWithTimeout, payload);
+      if (response?.token) {
+        localStorage.setItem("token", response.token);
+      }
       navigate("/dashboard")
     } catch (err) {
       console.log("Error Occured")
