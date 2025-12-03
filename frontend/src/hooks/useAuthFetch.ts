@@ -10,10 +10,30 @@ export function useAuthFetch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Extracts readable message from FastAPI, Django, Node, etc.
+  const extractMessage = (data: any): string => {
+    if (!data) return "Request failed";
+
+    // FastAPI validation errors: detail = [{ msg: "..."}]
+    if (Array.isArray(data.detail) && data.detail.length > 0) {
+      return data.detail[0].msg || "Validation error";
+    }
+
+    // Normal FastAPI errors
+    if (typeof data.detail === "string") return data.detail;
+
+    // Custom APIs
+    if (data.message) return data.message;
+    if (data.error) return data.error;
+
+    // As fallback
+    return JSON.stringify(data);
+  };
+
   const fetchWithTimeout = async (
     url: string,
     options: FetchOptions = {},
-    timeoutMs: 20000
+    timeoutMs = 20000
   ) => {
     setLoading(true);
     setError(null);
@@ -29,23 +49,28 @@ export function useAuthFetch() {
 
       clearTimeout(timeout);
 
-      //Handle Failed response
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || data.message || "Request failed");
+        const message = extractMessage(data);
+        setError(message);
+        throw new Error(message);
       }
-      return await response.json();
+
+      return data;
     } catch (err: any) {
       if (err.name === "AbortError") {
         setError("Request Timed Out");
-      } else {
-        console.log(err.message[0]);
-        setError(err.message);
+        throw err;
       }
+
+      const message = err.message || "Something went wrong";
+      setError(message);
       throw err;
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
+
   return { loading, error, fetchWithTimeout };
 }
