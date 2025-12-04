@@ -41,7 +41,7 @@ async def create_expense(
         await redis_cache.set(
             key=create_expense_key(expense_id=expense["id"]),
             value=expense,
-            indexes=[indexes["expense"]],
+            indexes=[indexes["expenses"]],
         )
         return expense
     except Exception as e:

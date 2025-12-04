@@ -11,3 +11,4 @@ wheels/
 
 # environmental variable
 backend/.env
+test.py
