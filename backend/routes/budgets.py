@@ -1,5 +1,5 @@
 import stat
-from schemas.budgetschema import BudgetExpected
+from schemas.budgetschema import BudgetExpected, BudgetUpdateExpected
 from crud.budgets import (
     add_a_budget,
     edit_a_budget,
@@ -97,10 +97,17 @@ async def soft_delete_budget(request: Request, user_id: str, budget_id: str):
 
 
 @budget_router.put("/edit_budget/{user_id}/{budget_id}")
-async def edit_budget(request: Request, user_id: str, budget_id: str):
+async def edit_budget(
+    request: Request, user_id: str, budget_id: str, budgetupdate: BudgetUpdateExpected
+):
     "this edits a budget"
     if user_id == request.state.user["id"]:
-        budget = edit_a_budget(budget_id)
+        budget = edit_a_budget(
+            budget_id,
+            budgetupdate.amount_limit,
+            budgetupdate.period,
+            budgetupdate.category_id,
+        )
         if budget == -1:
             raise Bad_Request("category does not exist")
         if budget == 0:

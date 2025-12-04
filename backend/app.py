@@ -1,6 +1,7 @@
 from routes.users import user_router
 from routes.categories import category_router
 from routes.budgets import budget_router
+from routes.expenses import expense_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +26,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(user_router)
 app.include_router(category_router)
 app.include_router(budget_router)
+app.include_router(expense_router)
 
 app.middleware("http")(auth_middleware)
 

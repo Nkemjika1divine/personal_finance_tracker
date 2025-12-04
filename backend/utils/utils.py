@@ -147,3 +147,8 @@ def create_category_key(category_id: str):
 def create_budget_key(budget_id: str):
     """creates a cache key for budgets"""
     return f"Budget:{budget_id}"
+
+
+def create_expense_key(expense_id: str):
+    """creates a cache key for expenses"""
+    return f"Expense:{expense_id}"
