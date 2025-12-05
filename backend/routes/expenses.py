@@ -51,7 +51,7 @@ async def get_user_expenses(
 
 
 @expense_router.get("/expense/{user_id}/{expense_id}")
-async def get_budget(request: Request, user_id: str, expense_id: str):
+async def get_expense(request: Request, user_id: str, expense_id: str):
     """This returns a user's single expense"""
     if (
         request.state.role == "admin"
@@ -66,7 +66,7 @@ async def get_budget(request: Request, user_id: str, expense_id: str):
 
 
 @expense_router.post("/add_expense")
-async def create__an_expense(request: Request, expensexp: ExpenseExpected):
+async def create_an_expense(request: Request, expensexp: ExpenseExpected):
     """This creates a expense"""
     expense = create_expense(
         amount=expensexp.amount,
@@ -80,7 +80,7 @@ async def create__an_expense(request: Request, expensexp: ExpenseExpected):
     return JSONResponse(content=expense, status_code=HTTP_201_CREATED)
 
 
-@expense_router.delete("/delete_expense/{user_id}/{expense_id}")
+@expense_router.put("/delete_expense/{user_id}/{expense_id}")
 async def soft_delete_expense(request: Request, user_id: str, expense_id: str):
     "this softdeletes a expense"
     if (
