@@ -1,5 +1,6 @@
 from datetime import date
 from crud.analytics import (
+    compare_expenses_with_budget,
     get_expenses_by_category,
     get_expenses_for_all_categories,
     total_expenses,
@@ -60,3 +61,10 @@ async def get_User_expenses_by_categories(
         request.state.user["id"], start_date, end_date
     )
     return JSONResponse(content=expenses)
+
+
+@analytics_router.get("/budget_status/{budget_id}")
+async def get_budget_status(request: Request, budget_id: str):
+    """This returns the status of a budget"""
+    status = compare_expenses_with_budget(budget_id, request.state.user["id"])
+    return JSONResponse(content=status)

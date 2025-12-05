@@ -1,6 +1,7 @@
 from calendar import monthrange
 from datetime import datetime, date
 from sqlalchemy import func
+from models.budget import Budget
 from models.category import Category
 from utils.utils import users_to_dict
 from models.expense import Expense
@@ -92,5 +93,35 @@ async def get_expenses_for_all_categories(
             .all()
         )
         return {category: float(total) for category, total in expenses}
+    except Exception as e:
+        raise ValueError(f"Value Error: {e}")
+
+
+async def compare_expenses_with_budget(budget_id: str, user_id: str):
+    """This returns the expenses made over a budgeted period"""
+    db = SessionLocal()
+    try:
+        result = (
+            db.query(Expense.id, Expense.amount, Expense.timestamp, Expense.description)
+            .join(
+                Budget,
+                (Expense.category_id == Budget.category_id)
+                & (Expense.user_id == Budget.user_id)
+                & (Expense.timestamp >= Budget.start_date)
+                & (Expense.timestamp <= Budget.end_date),
+            )
+            .filter(Budget.id == budget_id, Budget.user_id == user_id)
+            .all()
+        )
+        result = [
+            {
+                "id": exp.id,
+                "amount": float(exp.amount),
+                "description": exp.description,
+                "timestamp": exp.timestamp.isoformat(),
+            }
+            for exp in result
+        ]
+        return result
     except Exception as e:
         raise ValueError(f"Value Error: {e}")

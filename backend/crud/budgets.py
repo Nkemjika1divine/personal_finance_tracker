@@ -29,7 +29,7 @@ async def add_a_budget(
         if not category:
             return None
         budget = Budget(
-            amount=amount,
+            amount_limit=amount,
             start_date=start_date,
             end_date=end_date,
             user_id=user_id,

@@ -110,19 +110,22 @@ def hash_password(password: str) -> str:
 
 def model_to_dict(obj, request: Request = None):
     """Converts a model to a JSON serialized object"""
-    data = {}
-    for model in inspect(obj).mapper.column_attrs:
-        value = getattr(obj, model.key)
-        if isinstance(value, datetime):
-            value = value.isoformat()
-        data[model.key] = value
-    data.pop("password", None)
-    data.pop("is_deleted", None)
-    data.pop("deleted_by", None)
-    if "cover_image_url" in data and data["cover_image_url"] != None:
-        image_url = request.url_for("static", path=f"uploads/{data["cover_image_url"]}")
-        data["cover_image_url"] = str(image_url)
-    return data
+    if obj:
+        data = {}
+        for model in inspect(obj).mapper.column_attrs:
+            value = getattr(obj, model.key)
+            if isinstance(value, datetime):
+                value = value.isoformat()
+            data[model.key] = value
+        data.pop("password", None)
+        data.pop("is_deleted", None)
+        data.pop("deleted_by", None)
+        if "cover_image_url" in data and data["cover_image_url"] != None:
+            image_url = request.url_for(
+                "static", path=f"uploads/{data["cover_image_url"]}"
+            )
+            data["cover_image_url"] = str(image_url)
+        return data
 
 
 def users_to_dict(users, request: Request = None):

@@ -2,6 +2,7 @@ from routes.users import user_router
 from routes.categories import category_router
 from routes.budgets import budget_router
 from routes.expenses import expense_router
+from routes.analytics import analytics_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +28,7 @@ app.include_router(user_router)
 app.include_router(category_router)
 app.include_router(budget_router)
 app.include_router(expense_router)
+app.include_router(analytics_router)
 
 app.middleware("http")(auth_middleware)
 

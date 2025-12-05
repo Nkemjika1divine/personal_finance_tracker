@@ -138,7 +138,7 @@ async def logout(request: Request):
 @user_router.put("/make_admin/{user_id}")
 async def make_user_an_admin(request: Request, user_id: str):
     """Makes a user an admin"""
-    if request.state.role is not "admin" or request.state.role is not "superuser":
+    if request.state.role != "admin" or request.state.role != "superuser":
         raise Unauthorized("You are not authorized to perform this action")
     user = make_admin(user_id)
     if user == 0:
@@ -151,7 +151,7 @@ async def make_user_an_admin(request: Request, user_id: str):
 @user_router.put("/remove_admin/{user_id}")
 async def make_admin_a_user(request: Request, user_id: str):
     """Makes an admin a user"""
-    if request.state.role is not "admin" or request.state.role is not "superuser":
+    if request.state.role != "admin" or request.state.role != "superuser":
         raise Unauthorized("You are not authorized to perform this action")
     user = remove_admin(user_id)
     if user == 0:
