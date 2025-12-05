@@ -70,7 +70,8 @@ async def create_budget(request: Request, budgetexpected: BudgetExpected):
     """This creates a budget"""
     budget = add_a_budget(
         amount=budgetexpected.amount_limit,
-        period=budgetexpected.period,
+        start_date=budgetexpected.start_date,
+        end_date=budgetexpected.end_date,
         category_id=budgetexpected.category_id,
         user_id=request.state.user["id"],
     )
@@ -105,7 +106,8 @@ async def edit_budget(
         budget = edit_a_budget(
             budget_id,
             budgetupdate.amount_limit,
-            budgetupdate.period,
+            budgetupdate.start_date,
+            budgetupdate.end_date,
             budgetupdate.category_id,
         )
         if budget == -1:

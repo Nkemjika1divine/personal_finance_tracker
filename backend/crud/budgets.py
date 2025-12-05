@@ -1,4 +1,5 @@
 from ast import mod
+from datetime import date
 from models.budget import Budget
 from models.category import Category
 from sqlalchemy.orm import Session
@@ -18,7 +19,9 @@ indexes = {
 }
 
 
-async def add_a_budget(amount: float, period: str, user_id: str, category_id: str):
+async def add_a_budget(
+    amount: float, start_date: date, end_date: date, user_id: str, category_id: str
+):
     """This adds a budget to the DB"""
     db = SessionLocal()
     try:
@@ -26,7 +29,11 @@ async def add_a_budget(amount: float, period: str, user_id: str, category_id: st
         if not category:
             return None
         budget = Budget(
-            amount=amount, period=period, user_id=user_id, category_id=category_id
+            amount=amount,
+            start_date=start_date,
+            end_date=end_date,
+            user_id=user_id,
+            category_id=category_id,
         )
         db.add(budget)
         db.commit()
@@ -122,7 +129,11 @@ async def get_a_budget(budget_id: str):
 
 
 async def edit_a_budget(
-    budget_id: str, amount: float = None, period: str = None, category_id: str = None
+    budget_id: str,
+    amount: float = None,
+    start_date: date = None,
+    end_date: date = None,
+    category_id: str = None,
 ):
     """This edits a budget"""
     db = SessionLocal()
@@ -140,8 +151,10 @@ async def edit_a_budget(
             return 0
         if amount:
             budget.amount_limit = amount
-        if period:
-            budget.period = period
+        if start_date:
+            budget.start_date = start_date
+        if end_date:
+            budget.end_date = end_date
         db.commit()
         db.refresh(budget)
         budget = model_to_dict(budget)

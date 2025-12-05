@@ -28,5 +28,6 @@ class Budget(Basemodel, Base):
         String(50), ForeignKey("categories.id", ondelete="CASCADE"), nullable=False
     )
     amount_limit = Column(Float, nullable=False)
-    period = Column(String(10), nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
     is_deleted = Column(Boolean, default=False)

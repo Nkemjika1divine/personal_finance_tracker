@@ -1,3 +1,4 @@
+from datetime import date
 from operator import ge
 from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
@@ -12,29 +13,15 @@ class BudgetExpected(BaseModel):
         description="This is the amount being budgeted",
         ge=0,
     )
-    period: str = Field(
-        description="This is the budget period; must be weekly or monthly ",
-        max_length=8,
-        min_length=5,
+    start_date: date = Field(
+        description="The date the budget starts",
+    )
+    end_date: date = Field(
+        description="The date the budget ends",
     )
     category_id: str = Field(
         description="This is the category for the budget",
     )
-
-    @validator("period")
-    def validate_period(cls, value: str):
-        # remove any trailing lines
-        value = value.strip()
-        value = value.lower()
-        terms_list = [
-            "weekly",
-            "monthly",
-        ]
-        if value not in terms_list:
-            raise ValueError(
-                "Value must be one of the following: ['monthly', 'weekly']"
-            )
-        return value
 
 
 class BudgetUpdateExpected(BaseModel):
@@ -45,29 +32,15 @@ class BudgetUpdateExpected(BaseModel):
         description="This is the amount being budgeted",
         ge=0,
     )
-    period: str = Field(
-        default="",
-        description="This is the budget period; must be weekly or monthly ",
-        max_length=8,
-        min_length=5,
+    start_date: date = Field(
+        default=None,
+        description="The date the budget starts",
+    )
+    end_date: date = Field(
+        default=None,
+        description="The date the budget ends",
     )
     category_id: str = Field(
         default=None,
         description="This is the category for the budget",
     )
-
-    @validator("period")
-    def validate_period(cls, value: str = None):
-        # remove any trailing lines
-        if value:
-            value = value.strip()
-            value = value.lower()
-            terms_list = [
-                "weekly",
-                "monthly",
-            ]
-            if value not in terms_list:
-                raise ValueError(
-                    "Value must be one of the following: ['monthly', 'weekly']"
-                )
-            return value
