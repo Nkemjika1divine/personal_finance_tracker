@@ -245,3 +245,43 @@ async def average_daily_spending(
         return {"average_daily_spending": round(avg, 2)}
     except Exception as e:
         raise ValueError(f"Value Error: {e}")
+
+
+async def average_weekly_spending(
+    user_id: str,
+    start_date: date = None,
+    end_date: date = None,
+):
+    """This returns the average weekly spending over a period of time"""
+    db = SessionLocal()
+    try:
+        query = db.query(func.sum(Expense.amount)).filter(Expense.user_id == user_id)
+
+        if start_date:
+            query = query.filter(Expense.timestamp >= start_date)
+        if end_date:
+            query = query.filter(Expense.timestamp <= end_date)
+
+        total = query.scalar() or 0
+
+        # Determine range
+        if not start_date or not end_date:
+            minmax = (
+                db.query(func.min(Expense.timestamp), func.max(Expense.timestamp))
+                .filter(Expense.user_id == user_id)
+                .first()
+            )
+            if not start_date:
+                start_date = minmax[0]
+            if not end_date:
+                end_date = minmax[1]
+
+        if not start_date or not end_date:
+            return {"average_weekly_spending": 0}
+
+        weeks = ((end_date - start_date).days + 1) / 7
+        avg = total / weeks if weeks > 0 else 0
+
+        return {"average_weekly_spending": round(avg, 2)}
+    except Exception as e:
+        raise ValueError(f"Value Error: {e}")

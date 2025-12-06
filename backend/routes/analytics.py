@@ -1,6 +1,7 @@
 from datetime import date
 from crud.analytics import (
     average_daily_spending,
+    average_weekly_spending,
     compare_expenses_with_budget,
     get_expenses_by_category,
     get_expenses_for_all_categories,
@@ -87,4 +88,13 @@ async def get_average_daily_spending(
 ):
     """This returns the average daily spend for a period of time"""
     status = average_daily_spending(request.state.user["id"], start_date, end_date)
+    return JSONResponse(content=status)
+
+
+@analytics_router.get("/avg_weekly_spend")
+async def get_average_weekly_spending(
+    request: Request, start_date: date = None, end_date: date = None
+):
+    """This returns the average weekly spend for a period of time"""
+    status = average_weekly_spending(request.state.user["id"], start_date, end_date)
     return JSONResponse(content=status)
