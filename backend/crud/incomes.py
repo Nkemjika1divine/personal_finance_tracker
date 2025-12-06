@@ -1,6 +1,5 @@
 from ast import mod
 from datetime import date
-from backend.models import income
 from models.income import Income
 from models.category import Category
 from sqlalchemy.orm import Session

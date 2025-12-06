@@ -187,3 +187,61 @@ async def weekly_spending_trend(
 
     except Exception as e:
         raise ValueError(f"Value Error: {e}")
+
+
+async def average_daily_spending(
+    user_id: str,
+    start_date: date = None,
+    end_date: date = None,
+):
+    """This calculates the average daily spend over a period of time"""
+    db = SessionLocal()
+    try:
+        if not start_date and not end_date:
+            query = db.query(func.sum(Expense.amount)).filter(
+                Expense.user_id == user_id
+            )
+
+        if start_date and not end_date:
+            query = (
+                db.query(func.sum(Expense.amount))
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp >= start_date)
+            )
+        if end_date and not start_date:
+            query = (
+                db.query(func.sum(Expense.amount))
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp <= end_date)
+            )
+        if start_date and end_date:
+            query = (
+                db.query(func.sum(Expense.amount))
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp >= start_date)
+                .filter(Expense.timestamp <= end_date)
+            )
+        total = query.scalar() or 0
+
+        # Determine date range
+        # If no dates provided, use user's earliest + latest expense
+        if not start_date or not end_date:
+            minmax = (
+                db.query(func.min(Expense.timestamp), func.max(Expense.timestamp))
+                .filter(Expense.user_id == user_id)
+                .first()
+            )
+            if not start_date:
+                start_date = minmax[0]
+            if not end_date:
+                end_date = minmax[1]
+
+        if not start_date or not end_date:
+            return {"average_daily_spending": 0}
+
+        days = (end_date - start_date).days + 1
+        avg = total / days if days > 0 else 0
+
+        return {"average_daily_spending": round(avg, 2)}
+    except Exception as e:
+        raise ValueError(f"Value Error: {e}")
