@@ -4,6 +4,7 @@ from crud.analytics import (
     get_expenses_by_category,
     get_expenses_for_all_categories,
     total_expenses,
+    weekly_spending_trend,
 )
 from schemas.budgetschema import BudgetExpected
 from fastapi import APIRouter, Request, BackgroundTasks, Depends, Query
@@ -67,4 +68,13 @@ async def get_User_expenses_by_categories(
 async def get_budget_status(request: Request, budget_id: str):
     """This returns the status of a budget"""
     status = compare_expenses_with_budget(budget_id, request.state.user["id"])
+    return JSONResponse(content=status)
+
+
+@analytics_router.get("/intraweek_spend")
+async def get_weekly_spending_trend(
+    request: Request, start_date: date = None, end_date: date = None
+):
+    """This returns the spending trend by days of the week"""
+    status = weekly_spending_trend(request.state.user["id"])
     return JSONResponse(content=status)

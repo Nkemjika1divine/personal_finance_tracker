@@ -125,3 +125,65 @@ async def compare_expenses_with_budget(budget_id: str, user_id: str):
         return result
     except Exception as e:
         raise ValueError(f"Value Error: {e}")
+
+
+async def weekly_spending_trend(
+    user_id: str, start_date: date = None, end_date: date = None
+):
+    """This returns the spending trend of a user by days of the week"""
+    db = SessionLocal()
+    try:
+        if start_date and end_date:
+            trend = (
+                db.query(
+                    func.dayname(Expense.timestamp).label("weekday"),
+                    func.sum(Expense.amount).label("total"),
+                )
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp >= start_date)
+                .filter(Expense.timestamp <= end_date)
+            )
+        if start_date and not end_date:
+            trend = (
+                db.query(
+                    func.dayname(Expense.timestamp).label("weekday"),
+                    func.sum(Expense.amount).label("total"),
+                )
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp >= start_date)
+            )
+        if end_date and not start_date:
+            trend = (
+                db.query(
+                    func.dayname(Expense.timestamp).label("weekday"),
+                    func.sum(Expense.amount).label("total"),
+                )
+                .filter(Expense.user_id == user_id)
+                .filter(Expense.timestamp <= end_date)
+            )
+        if not start_date and not end_date:
+            trend = db.query(
+                func.dayname(Expense.timestamp).label("weekday"),
+                func.sum(Expense.amount).label("total"),
+            ).filter(Expense.user_id == user_id)
+
+        results = trend.group_by(func.dayname(Expense.timestamp)).all()
+
+        # Default so all days appear even if empty
+        week_template = {
+            "Monday": 0.0,
+            "Tuesday": 0.0,
+            "Wednesday": 0.0,
+            "Thursday": 0.0,
+            "Friday": 0.0,
+            "Saturday": 0.0,
+            "Sunday": 0.0,
+        }
+
+        for weekday, total in results:
+            week_template[weekday] = float(total)
+
+        return week_template
+
+    except Exception as e:
+        raise ValueError(f"Value Error: {e}")
