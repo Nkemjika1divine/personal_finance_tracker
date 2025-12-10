@@ -1,7 +1,10 @@
 import stat
+
+from pydantic import Json
 from schemas.budgetschema import BudgetExpected, BudgetUpdateExpected
 from crud.budgets import (
     add_a_budget,
+    current_running_budgets,
     edit_a_budget,
     get_a_budget,
     get_a_users_budgets,
@@ -75,8 +78,12 @@ async def create_budget(request: Request, budgetexpected: BudgetExpected):
         category_id=budgetexpected.category_id,
         user_id=request.state.user["id"],
     )
-    if not budget:
+    if budget == -1:
         raise Bad_Request("Category does not exist")
+    if budget == 0:
+        raise Bad_Request(
+            "There's already a budget set for this category within the timeframe"
+        )
     return JSONResponse(content=budget, status_code=HTTP_201_CREATED)
 
 
@@ -112,7 +119,18 @@ async def edit_budget(
         )
         if budget == -1:
             raise Bad_Request("category does not exist")
+        if budget == -2:
+            raise Bad_Request("cannot edit a budget whose period has passed")
         if budget == 0:
             raise Not_Found("budget does not exist")
         return JSONResponse(content=budget, status_code=HTTP_200_OK)
     raise Forbidden("You are not authorized to perform this action")
+
+
+@budget_router.get("/current_running_budgets")
+async def get_current_running_budgets(request: Request):
+    """This returns all the current running budgets for a user"""
+    budgets = current_running_budgets(request.state.user["id"])
+    if not budgets:
+        raise Not_Found("No current running budget")
+    return JSONResponse(content=budgets, status_code=HTTP_200_OK)

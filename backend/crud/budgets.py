@@ -1,7 +1,9 @@
 from ast import mod
-from datetime import date
+from datetime import date, datetime
 from models.budget import Budget
 from models.category import Category
+from models.expense import Expense
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from storage.db import SessionLocal
 from storage.redis import redis_cache
@@ -19,6 +21,44 @@ indexes = {
 }
 
 
+def is_after_running_budget(
+    db: Session, start_date: date, category_id: str, user_id: str
+) -> bool:
+    """This checks if a budget starts after the current running budget of a category ends"""
+    try:
+        budget = (
+            db.query(Budget)
+            .filter(
+                Budget.user_id == user_id,
+                Budget.category_id == category_id,
+                Budget.end_date >= start_date,
+            )
+            .first()
+        )
+        if budget:
+            return True
+        return False
+    except Exception as e:
+        raise ValueError(f"Couldn't check existing budget: {e}")
+
+
+def check_budget_expense_level(budget: Budget):
+    """This checks and returns the amount spent so far in a budget"""
+    db = SessionLocal()
+    try:
+        total_spent = (
+            db.query(func.coalesce(func.sum(Expense.amount), 0))
+            .filter(Expense.user_id == budget.user_id)
+            .filter(Expense.category_id == budget.category_id)
+            .filter(Expense.timestamp >= budget.start_date)
+            .filter(Expense.timestamp <= budget.end_date)
+            .scalar()
+        )
+        return float(total_spent)
+    except Exception as e:
+        raise ValueError(f"Couldn't save budget: {e}")
+
+
 async def add_a_budget(
     amount: float, start_date: date, end_date: date, user_id: str, category_id: str
 ):
@@ -27,7 +67,9 @@ async def add_a_budget(
     try:
         category = db.query(Category).filter(Category.id == category_id).first()
         if not category:
-            return None
+            return -1
+        if not is_after_running_budget(db, start_date, category_id, user_id):
+            return 0
         budget = Budget(
             amount_limit=amount,
             start_date=start_date,
@@ -147,6 +189,8 @@ async def edit_a_budget(
             .filter(Budget.id == budget_id, Budget.is_deleted == False)
             .first()
         )
+        if budget.end_date > datetime.now():
+            return -2
         if not budget:
             return 0
         if amount:
@@ -167,3 +211,44 @@ async def edit_a_budget(
         return budget
     except Exception as e:
         raise ValueError(f"Couldn't edit budget: {e}")
+
+
+async def current_running_budgets(user_id: str):
+    """This returns all the current running budgets for a user"""
+    db = SessionLocal()
+    try:
+        budgets = (
+            db.query(Budget)
+            .filter(
+                Budget.user_id == user_id,
+                Budget.start_date <= datetime.now(),
+                Budget.end_date >= datetime.now(),
+            )
+            .all()
+        )
+        if not budgets:
+            return None
+        return users_to_dict(budgets)
+    except Exception as e:
+        raise ValueError(f"Couldn't get budgets: {e}")
+
+
+async def category_current_running_budget(user_id: str, category_id: str):
+    """Returns the current running budget for a category"""
+    db = SessionLocal()
+    try:
+        budget = (
+            db.query(Budget)
+            .filter(
+                Budget.user_id == user_id,
+                Budget.category_id == category_id,
+                Budget.start_date <= datetime.now(),
+                Budget.end_date >= datetime.now(),
+            )
+            .first()
+        )
+        if not budget:
+            return None
+        return model_to_dict(budget)
+    except Exception as e:
+        raise ValueError(f"Couldn't get budgets: {e}")

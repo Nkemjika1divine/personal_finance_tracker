@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 """Utility module"""
+from storage.db import SessionLocal
+from models.notification import Notification
 from models.category import Category
 from sqlalchemy import exists
 import inflect
@@ -160,3 +162,8 @@ def create_expense_key(expense_id: str):
 def create_income_key(income_id: str):
     """creates a cache key for incomes"""
     return f"Income:{income_id}"
+
+
+def create_notification_key(notification_id: str):
+    """creates a cache key for notification"""
+    return f"Notification:{notification_id}"

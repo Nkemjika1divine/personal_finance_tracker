@@ -4,6 +4,7 @@ from routes.budgets import budget_router
 from routes.expenses import expense_router
 from routes.analytics import analytics_router
 from routes.incomes import income_router
+from routes.websocket import websocket_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -31,6 +32,7 @@ app.include_router(budget_router)
 app.include_router(expense_router)
 app.include_router(analytics_router)
 app.include_router(income_router)
+app.include_router(websocket_router)
 
 app.middleware("http")(auth_middleware)
 

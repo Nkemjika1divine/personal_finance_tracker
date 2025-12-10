@@ -1,20 +1,52 @@
-from ast import mod
 from datetime import date
+from backend.routes import expenses, websocket
 from models.expense import Expense
+from models.budget import Budget
 from models.category import Category
+from models.notification import Notification
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from storage.db import SessionLocal
-from storage.redis import RedisCache, redis_cache
-from models.user import User
+from storage.redis import redis_cache
 from utils.utils import (
     create_expense_key,
     model_to_dict,
     users_to_dict,
 )
+from utils.websocket import create_notifications, manager
 
 indexes = {
     "expenses": "idx:Expense",
 }
+
+
+def has_exceeded_current_budget(
+    db: Session, user_id: str, category_id: str, timestamp: date
+):
+    """This gets the amount expended on the current budget"""
+    budget = (
+        db.query(Budget)
+        .filter(
+            Budget.user_id == user_id,
+            Budget.category_id == category_id,
+            Budget.start_date <= timestamp,
+            Budget.end_date >= timestamp,
+        )
+        .first()
+    )
+    if not budget:
+        return None
+    total_expenses = (
+        db.query(func.coalese(func.sum(Expense.amount), 0))
+        .filter(
+            Expense.user_id == user_id,
+            Expense.category_id == category_id,
+            Expense.timestamp >= budget.start_date,
+            Expense.timestamp <= budget.end_date,
+        )
+        .scalar()
+    )
+    return {"budget": budget, "expenses": total_expenses}
 
 
 async def create_expense(
@@ -36,6 +68,13 @@ async def create_expense(
         )
         db.add(expense)
         db.commit()
+        budget = has_exceeded_current_budget(db, user_id, category_id, timestamp)
+        if budget and budget["budget"].amount_limit < budget["expenses"]:
+            message = (
+                f"You have exceeded your limit for this budget: {budget['budget']}"
+            )
+            await manager.send_to_user(user_id, message)
+            notification = create_notifications(user_id, message)
         expense = model_to_dict(expense)
         db.close()
         await redis_cache.set(

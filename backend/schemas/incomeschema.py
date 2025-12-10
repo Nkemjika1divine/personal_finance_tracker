@@ -1,9 +1,5 @@
 from datetime import date
-from operator import ge
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing import Optional
-from utils.utils import category_normalizer
-import re
 
 
 class IncomeExpected(BaseModel):
@@ -25,7 +21,7 @@ class IncomeUpdateExpected(BaseModel):
     """Model for creating an Income"""
 
     amount: float = Field(
-        default=None
+        default=None,
         description="This is the amount gotten",
         ge=0,
     )
