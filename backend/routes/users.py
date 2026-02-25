@@ -17,8 +17,7 @@ from schemas.userschema import UserExpected, UserResponse, UserUpdate
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_201_CREATED, HTTP_200_OK
 from typing import Annotated
-from uuid import uuid4
-from utils.errors import Not_Found, ServerError, Unauthorized, Forbidden, Bad_Request
+from utils.errors import Not_Found, Unauthorized, Forbidden, Bad_Request
 from utils.utils import (
     create_user_token_key,
     model_to_dict,

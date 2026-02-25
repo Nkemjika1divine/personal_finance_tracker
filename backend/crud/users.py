@@ -1,4 +1,3 @@
-from uuid import uuid4
 from sqlalchemy.orm import Session
 from storage.db import SessionLocal
 from storage.redis import redis_cache

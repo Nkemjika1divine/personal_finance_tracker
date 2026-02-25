@@ -1,4 +1,3 @@
-from ast import mod
 from datetime import date, datetime
 from models.budget import Budget
 from models.category import Category
@@ -9,11 +8,8 @@ from storage.db import SessionLocal
 from storage.redis import redis_cache
 from utils.utils import (
     create_budget_key,
-    create_category_key,
-    create_user_key,
     model_to_dict,
     users_to_dict,
-    hash_password,
 )
 
 indexes = {

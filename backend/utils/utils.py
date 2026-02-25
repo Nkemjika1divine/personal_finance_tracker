@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """Utility module"""
 from storage.db import SessionLocal
-from models.notification import Notification
 from models.category import Category
 from sqlalchemy import exists
 import inflect
